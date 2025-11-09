@@ -30,8 +30,8 @@ public class Player{
 		isAlive = true;
 		
 		// 랜덤 스폰
-		posX = (int)(Math.random() * InGameView.MAX_H) + 10;
-		posY = (int)(Math.random() * InGameView.MAX_W) + 10;
+		posX = (int)(Math.random() * InGameView.MAX_W) + 10;
+		posY = (int)(Math.random() * InGameView.MAX_H) + 10;
 	}
 	
 	
