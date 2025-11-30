@@ -75,4 +75,8 @@ public class Killer {
     public int getPosX() { return posX; }
     public int getPosY() { return posY; }
     public int getDirection() { return direction; }
+    
+    // [추가] 충돌 감지를 위해 크기 반환
+    public int getWidth() { return width; }
+    public int getHeight() { return height; }
 }

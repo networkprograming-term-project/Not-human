@@ -19,6 +19,8 @@ public class PlayerRender{
     private Image[] img_up = new Image[2];
     private Image[] img_down = new Image[2];
     
+    private Image img_dead; // 사망 이미지 변수
+    
     // 현재 상태 및 프레임 변수
     private Direction currentDirection = Direction.IDLE;
     private int currentFrame = 0; // 0 또는 1 (두 개의 이미지를 교차)
@@ -67,6 +69,7 @@ public class PlayerRender{
             img_up[1] = new ImageIcon("src/img/player_up2.png").getImage();
             img_down[0] = new ImageIcon("src/img/player_down1.png").getImage();
             img_down[1] = new ImageIcon("src/img/player_down2.png").getImage();
+            img_dead = new ImageIcon("src/img/player_dead.png").getImage();
 
             width = img_left[1].getWidth(null);
             height = img_down[1].getHeight(null);
@@ -112,6 +115,10 @@ public class PlayerRender{
 	
     // 현재 상태(방향)와 현재 프레임에 맞는 이미지를 반환
     public Image getImg() {
+    	if (!isAlive) {
+            return img_dead;
+        }
+    	
         switch (currentDirection) {
             case LEFT:
                 return img_left[currentFrame];

@@ -119,39 +119,44 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
     	//--------- player 정보 파싱------------------------//
         // 예: UserA,100,200,1/UserB,300,400,2/
     	if(!playersMsg.equals("") && !playersMsg.equals("a") && !playersMsg.startsWith("dummy")) {
-            String[] pDatas = playersMsg.split("/");
-            
-            for(String pData : pDatas) {
-                String[] info = pData.split(",");
-                if(info.length < 4) continue;
+    	    String[] pDatas = playersMsg.split("/");
+    	    
+    	    for(String pData : pDatas) {
+    	        String[] info = pData.split(",");
+    	        
+    	        // [수정] 데이터 길이가 5개여야 함 (Alive 정보 추가됨)
+    	        if(info.length < 5) continue; 
 
-                String pName = info[0];
-                int x = Integer.parseInt(info[1]);
-                int y = Integer.parseInt(info[2]);
-                int dir = Integer.parseInt(info[3]);
- 
-                // 해당 이름의 플레이어가 벡터에 있는지 확인
-                boolean found = false;
-                for(PlayerRender pr : playerRenderVec) {
-                    if(pr.getName().equals(pName)) {
-                        pr.setPosX(x);
-                        pr.setPosY(y);
-                        pr.setDirection(dir);
-                        found = true;
-                        break;
-                    }
-                }
-                
-                // 없으면 새로 생성 (새로 접속한 유저)
-                if(!found) {
-                    PlayerRender newPr = new PlayerRender(pName);
-                    newPr.setPosX(x);
-                    newPr.setPosY(y);
-                    newPr.setDirection(dir);
-                    playerRenderVec.add(newPr);
-                }
-            }
-            
+    	        String pName = info[0];
+    	        int x = Integer.parseInt(info[1]);
+    	        int y = Integer.parseInt(info[2]);
+    	        int dir = Integer.parseInt(info[3]);
+    	        int aliveStatus = Integer.parseInt(info[4]); // [추가] 1=Alive, 0=Dead
+    	        boolean isAlive = (aliveStatus == 1);
+
+    	        // 해당 이름의 플레이어가 벡터에 있는지 확인
+    	        boolean found = false;
+    	        for(PlayerRender pr : playerRenderVec) {
+    	            if(pr.getName().equals(pName)) {
+    	                pr.setPosX(x);
+    	                pr.setPosY(y);
+    	                pr.setDirection(dir);
+    	                pr.setAlive(isAlive); // [추가] 생존 상태 업데이트
+    	                found = true;
+    	                break;
+    	            }
+    	        }
+    	        
+    	        // 없으면 새로 생성
+    	        if(!found) {
+    	            PlayerRender newPr = new PlayerRender(pName);
+    	            newPr.setPosX(x);
+    	            newPr.setPosY(y);
+    	            newPr.setDirection(dir);
+    	            newPr.setAlive(isAlive); // [추가]
+    	            playerRenderVec.add(newPr);
+    	        }
+    	    }
             // 접속 끊긴 유저 제거 로직
             // playerRenderVec.removeIf(pr -> !currentFrameNames.contains(pr.getName()));
         }

@@ -16,8 +16,11 @@ public class Player {
     private int width = new ImageIcon("src/img/player_left2.png").getImage().getWidth(null);
     private int height = new ImageIcon("src/img/player_down2.png").getImage().getHeight(null);
     
- // 키 입력 상태 저장 (서버가 물리 계산을 하기 위해)
+    // 키 입력 상태 저장 (서버가 물리 계산을 하기 위해)
     public boolean keyLeft, keyRight, keyUp, keyDown;
+    
+    private boolean isAlive = true; // 플레이어 생존 여부
+
     
 	public Player(String playerName) {
 		this.playerName = playerName;
@@ -38,6 +41,7 @@ public class Player {
 	
     // 매 프레임마다 호출되어 실제 좌표를 이동시킴
     public void update() {
+    	if (!isAlive) return; // 죽으면 이동 불가
         int dx = 0;
         int dy = 0;
         
@@ -72,6 +76,14 @@ public class Player {
         posX = Math.max(0, Math.min(posX, GameManager.MAX_W - width));
         posY = Math.max(0, Math.min(posY, GameManager.MAX_H - height));
     }
+    
+    // [추가] Getter, Setter
+    public boolean isAlive() { return isAlive; }
+    public void setAlive(boolean isAlive) { this.isAlive = isAlive; }
+    
+    // [추가] 충돌 감지를 위해 크기 반환
+    public int getWidth() { return width; }
+    public int getHeight() { return height; }
     
 	public String getName() { return playerName; }
     public int getPosX() { return posX; }

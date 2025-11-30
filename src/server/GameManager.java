@@ -82,9 +82,41 @@ public class GameManager extends JPanel implements ActionListener{
      	// 킬러 입력 처리 (추가 필요)
      	if(killer.getName().equals(playerName)) {
      		killer.setKeyInput(keyCode, isPressed); // Killer 클래스에 해당 메서드 필요
+     	
+     		//'D' 키를 눌렀을 때 공격 시도
+            if (keyCode == 68 && isPressed) {
+                tryAttack();
+            }
      	}
     }
 	
+    
+    // 공격 및 충돌 감지 로직
+    private void tryAttack() {
+        // 킬러의 히트박스 생성
+        Rectangle killerRect = new Rectangle(
+            killer.getPosX(), killer.getPosY(), 
+            killer.getWidth(), killer.getHeight()
+        );
+
+        for (Player p : playerVec) {
+            if (!p.isAlive()) continue; // 이미 죽은 플레이어는 패스
+
+            // 플레이어의 히트박스 생성
+            Rectangle playerRect = new Rectangle(
+                p.getPosX(), p.getPosY(), 
+                p.getWidth(), p.getHeight()
+            );
+
+            // 두 사각형이 겹치는지 확인 (충돌 감지)
+            if (killerRect.intersects(playerRect)) {
+                p.setAlive(false); // 플레이어 사망 처리
+                System.out.println("[GAME] " + p.getName() + " has been eliminated!");
+            }
+        }
+    }
+    
+    
 	// ActionListener 인터페이스를 구현한 메소드, 타이머 이벤트가 발생할 때마다 호출
     public void actionPerformed(ActionEvent e) {
     	//5ms 마다 플레임 업데이트
@@ -148,7 +180,8 @@ public class GameManager extends JPanel implements ActionListener{
 		
 		//--------- player 정보 붙이기------------------------//
         for(Player p : playerVec) {
-            sb.append(String.format("%s,%d,%d,%d/", p.getName(), p.getPosX(), p.getPosY(), p.getDirection()));
+        	sb.append(String.format("%s,%d,%d,%d,%d/", 
+                    p.getName(), p.getPosX(), p.getPosY(), p.getDirection(), p.isAlive() ? 1 : 0));
         }
         sb.append("@");
 		
