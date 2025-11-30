@@ -92,7 +92,7 @@ public class ClientExe  extends JFrame {
 			String name = txtUserName.getText().trim();
 			String host = txtIpAddress.getText().trim();
 			String port = txtPortNumber.getText().trim();
-			WaitingRoom waitingRoom = new WaitingRoom(name, host, port);
+			NetworkClient networkClient = new NetworkClient(name, host, port);
 			setVisible(false);
 		}
 	}
