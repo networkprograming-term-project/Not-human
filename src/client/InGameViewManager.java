@@ -24,6 +24,13 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
 	private int animationCounter = 0;
 	private static final int ANIMATION_FRAME_DELAY = 20;
 	
+	// UI용 이미지 및 변수
+    private Image img_heart_full;
+    private Image img_heart_empty;
+    private int currentKillerLife = 3;
+    private int remainingTime = 0;
+    private String currentGameState = "RUNNING";
+	
     //-----------------------게임 내 객체들---------------------------------------//
 	private PlayerRender playerRender; // 도망자
   	private KillerRender killerRender; // 킬러
@@ -52,6 +59,14 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
 			gameAiRenderVec.add(new GameAiRender(i));
 		}
 		
+		// UI 이미지 로드 (이미지가 없으면 try-catch에서 예외 처리됨)
+        try {
+            img_heart_full = new ImageIcon("src/img/heart.png").getImage(); // 파일명 확인 필요
+            img_heart_empty = new ImageIcon("src/img/heart_empty.png").getImage(); 
+        } catch (Exception e) {
+            // 이미지가 없을 경우를 대비해 null 처리
+        }
+		
 		addKeyListener(this); // 키 리스너 추가
 		setFocusable(true); // 키 입력을 받기 위해 포커스 가능하도록 설정
 	    setPreferredSize(new Dimension(MAX_W, MAX_H)); // 패널의 선호 사이즈 설정
@@ -67,35 +82,15 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
     	String serverMsg = networkClient.getServerGameStateMSG();
     	
     	// 아직 서버에서 아무 것도 못 받은 경우 방어
-        if (serverMsg == null || serverMsg.isEmpty()) {
-            return;
-        }
+    	if (serverMsg == null || !serverMsg.contains("@")) return;
+
+        String[] arr = serverMsg.split("@");
+        if (arr.length < 4) return;
+    	
         
-    	System.out.println(serverMsg);
-    	
-    	//  서버 메시지가 게임 데이터 포맷인지 확인
-        // 정상 포맷: AI@Player@Killer@GameState (최소 3개의 @가 있어 4조각이 나야 함)
-        if (!serverMsg.contains("@")) {
-            // 채팅 메시지나 시스템 알림인 경우 무시 (또는 로그 출력)
-            // System.out.println("System Msg: " + serverMsg);
-            return;
-        }
-        
-    	// 메시지 형태: AI정보... @ Player정보... @ Killer정보 @ GameState
-    	String[] arr = serverMsg.split("@"); 
-    	
-    	// [예외 해결] 배열 크기 체크 (데이터가 짤려서 왔을 경우 방어)
-    	if (arr.length < 4) {
-            return;
-        }
-    	
-    	String gameAisMsg = arr[0];
-    	String playersMsg = arr[1];
-    	String killerMsg = arr[2];
-    	String gameStateMsg = arr[3];
-    	
     	//--------- gameAI 정보 파싱------------------------//
     	// 예: 100,200,imgState/ ...
+    	String gameAisMsg = arr[0];
     	if(!gameAisMsg.equals("") && !gameAisMsg.equals("a")) {
             String [] gameAiMsg = gameAisMsg.split("/");
             // AI 개수가 맞는지 확인 후 루프
@@ -118,6 +113,7 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
     	
     	//--------- player 정보 파싱------------------------//
         // 예: UserA,100,200,1/UserB,300,400,2/
+    	String playersMsg = arr[1];
     	if(!playersMsg.equals("") && !playersMsg.equals("a") && !playersMsg.startsWith("dummy")) {
     	    String[] pDatas = playersMsg.split("/");
     	    
@@ -164,34 +160,43 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
     	//--------- killer 정보 파싱------------------------//
     	// 예: KillerName,100,200,1
         // 서버에서 데이터가 없으면 "a" 등을 보냄
-    	if (!killerMsg.equals("a") && !killerMsg.isEmpty()) {
+    	String killerMsg = arr[2];
+        if (!killerMsg.equals("a") && !killerMsg.isEmpty()) {
             String[] kInfo = killerMsg.split(",");
-            if (kInfo.length >= 4) {
-            	killerRender.setName(kInfo[0]); 
+            if (kInfo.length >= 5) { 
+                killerRender.setName(kInfo[0]); 
                 killerRender.setPosX(Integer.parseInt(kInfo[1]));
                 killerRender.setPosY(Integer.parseInt(kInfo[2]));
                 killerRender.setDirection(Integer.parseInt(kInfo[3]));
                 
-                // 킬러가 보이도록 설정
+                // 킬러 목숨 업데이트
+                currentKillerLife = Integer.parseInt(kInfo[4]);
+                
                 killerRender.setVisible(true);
             }
         }
     	
     	//--------- gameState 정보 파싱------------------------//
-    	// 예: "RUNNING" or "GAMEOVER" or "TIME:170"
-    	if (!gameStateMsg.equals("a") && !gameStateMsg.isEmpty()) {
-            // 게임 상태에 따라 UI 처리 (예: 게임 종료 시 팝업 등)
-            // 여기서는 단순히 콘솔 출력이나 타이머 변수 업데이트 등을 수행할 수 있음
-            // System.out.println("Current State: " + gameStateMsg);
-            
-            if(gameStateMsg.startsWith("GAMEOVER")) {
-                // 게임 종료 처리 로직
-                // timer.stop();
-                // JOptionPane.showMessageDialog(this, "Game Over!");
+        String gameStateMsg = arr[3];
+        if (!gameStateMsg.isEmpty()) {
+            String[] stateParts = gameStateMsg.split(":");
+            currentGameState = stateParts[0];
+            if (stateParts.length > 1) {
+                remainingTime = Integer.parseInt(stateParts[1]);
+            }
+
+            // 게임 종료 시 팝업 처리 (한 번만 뜨게 하려면 플래그 필요)
+            if (!currentGameState.equals("RUNNING")) {
+                timer.stop(); // 게임 루프 정지
+                repaint(); // 마지막 화면 그림
+                
+                String resultMsg = currentGameState.equals("RUNNER_WIN") ? "도망자 승리!" : "술래 승리!";
+                JOptionPane.showMessageDialog(this, resultMsg);
+                // 필요 시 로비로 이동하거나 종료 코드 추가
             }
         }
     	
-    	//--------- [5] 애니메이션 프레임 업데이트 (제안하신 부분) ------------------------//
+    	//---------  애니메이션 프레임 업데이트  ------------------------//
         animationCounter++;
         if (animationCounter >= ANIMATION_FRAME_DELAY) {
             animationCounter = 0; // 카운터 리셋
@@ -275,7 +280,88 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
                 g.drawString(name, textX, textY);
             } 
         }
+        
+        // UI 그리기 (최상단 레이어)
+        drawUI(g);
 	}
+	
+	// UI 그리는 메서드
+    private void drawUI(Graphics g) {
+        // ---------------------------------------------------------
+        // (1) 술래 목숨 (좌측 상단 하트) - ★ 술래 본인에게만 보이도록 수정 ★
+        // ---------------------------------------------------------
+        // networkClient.getUserName(): 내 이름
+        // killerRender.getName(): 술래 이름
+        if (killerRender != null && networkClient.getUserName().equals(killerRender.getName())) {
+            int heartX = 20;
+            int heartY = 20;
+            int heartSize = 40;
+            int padding = 5;
+    
+            for (int i = 0; i < 3; i++) {
+                if (i < currentKillerLife) {
+                    if (img_heart_full != null) {
+                        g.drawImage(img_heart_full, heartX + (heartSize + padding) * i, heartY, heartSize, heartSize, this);
+                    } else {
+                        // 이미지가 없으면 빨간 원으로 대체
+                        g.setColor(Color.RED);
+                        g.fillOval(heartX + (heartSize + padding) * i, heartY, heartSize, heartSize);
+                    }
+                } else {
+                    if (img_heart_empty != null) {
+                        g.drawImage(img_heart_empty, heartX + (heartSize + padding) * i, heartY, heartSize, heartSize, this);
+                    } else {
+                        // 이미지가 없으면 빈 원으로 대체
+                        g.setColor(Color.GRAY);
+                        g.drawOval(heartX + (heartSize + padding) * i, heartY, heartSize, heartSize);
+                    }
+                }
+            }
+            
+            // (선택사항) "공격 기회" 텍스트 표시
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Malgun Gothic", Font.BOLD, 15));
+            g.drawString("Attack Chance", heartX, heartY + heartSize + 15);
+        }
+
+        // ---------------------------------------------------------
+        // (2) 남은 시간 (중앙 상단) - 모두에게 보임
+        // ---------------------------------------------------------
+        g.setFont(new Font("Malgun Gothic", Font.BOLD, 30));
+        g.setColor(Color.WHITE);
+        String timeStr = "Time: " + remainingTime;
+        int timeWidth = g.getFontMetrics().stringWidth(timeStr);
+        g.drawString(timeStr, (MAX_W - timeWidth) / 2, 50);
+
+        // ---------------------------------------------------------
+        // (3) 생존자 수 (우측 상단) - 모두에게 보임
+        // ---------------------------------------------------------
+        int survivorCount = 0;
+        for(PlayerRender pr : playerRenderVec) {
+            if(pr.isAlive()) survivorCount++;
+        }
+        String survivorStr = "Alive: " + survivorCount;
+        int survivorWidth = g.getFontMetrics().stringWidth(survivorStr);
+        g.drawString(survivorStr, MAX_W - survivorWidth - 30, 50);
+        
+        // ---------------------------------------------------------
+        // (4) 게임 결과 메시지 (화면 중앙) - 종료 상태일 때만 보임
+        // ---------------------------------------------------------
+        if (!currentGameState.equals("RUNNING")) {
+            g.setColor(new Color(0, 0, 0, 150)); // 반투명 배경
+            g.fillRect(0, 0, MAX_W, MAX_H);
+            
+            g.setFont(new Font("Malgun Gothic", Font.BOLD, 80));
+            String resultText = currentGameState.equals("RUNNER_WIN") ? "RUNNERS WIN!" : "KILLER WINS!";
+            
+            // 텍스트 색상 설정 (도망자 승: 파랑, 술래 승: 빨강)
+            if (currentGameState.equals("RUNNER_WIN")) g.setColor(Color.CYAN);
+            else g.setColor(Color.RED);
+            
+            int textW = g.getFontMetrics().stringWidth(resultText);
+            g.drawString(resultText, (MAX_W - textW) / 2, MAX_H / 2);
+        }
+    }
 	
     // KeyListener 인터페이스를 구현한 메소드, 키가 눌렸을 때 호출
     public void keyPressed(KeyEvent e) {

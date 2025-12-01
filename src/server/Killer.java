@@ -11,6 +11,8 @@ public class Killer {
     private int posY;
     private int direction = 0; // 0:IDLE, 1:LEFT, 2:RIGHT, 3:UP, 4:DOWN
     
+    private int life = 3; // 목숨 3개
+    
     // 술래는 도망자보다 조금 더 빠르게 설정
     private final static int speed = 2; 
     private int width = new ImageIcon("src/img/seeker_left2.png").getImage().getWidth(null);
@@ -69,12 +71,18 @@ public class Killer {
         posY = Math.max(0, Math.min(posY, GameManager.MAX_H - height));
     }
     
+    // 목숨 감소
+    public void decreaseLife() {
+        if (life > 0) life--;
+    }
+    
  // Getter
     public String getName() { return playerName; }
     public void setName(String name) { this.playerName=name; }
     public int getPosX() { return posX; }
     public int getPosY() { return posY; }
     public int getDirection() { return direction; }
+    public int getLife() { return life; }
     
     // [추가] 충돌 감지를 위해 크기 반환
     public int getWidth() { return width; }
