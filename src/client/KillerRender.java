@@ -6,7 +6,7 @@ import javax.swing.*;
 public class KillerRender {
     // 킬러의 현재 상태(방향)를 나타내는 열거형
     public enum Direction {
-        IDLE, LEFT, RIGHT, UP, DOWN
+        IDLE, LEFT, RIGHT, UP, DOWN, PUNCH
     }
     
     // 식별용 이름
@@ -18,6 +18,8 @@ public class KillerRender {
     private Image[] img_right = new Image[2];
     private Image[] img_up = new Image[2];
     private Image[] img_down = new Image[2];
+    // 공격 이미지 변수
+    private Image img_punch;
     
     // 현재 상태 및 프레임 변수
     private Direction currentDirection = Direction.IDLE;
@@ -70,6 +72,9 @@ public class KillerRender {
             img_down[0] = new ImageIcon("src/img/seeker_down1.png").getImage();
             img_down[1] = new ImageIcon("src/img/seeker_down2.png").getImage();
 
+            // 펀치 이미지 로드
+            img_punch = new ImageIcon("src/img/seeker_punch.png").getImage();
+            
             // 이미지 크기 저장
             width = img_left[1].getWidth(null);
             height = img_down[1].getHeight(null);
@@ -90,6 +95,7 @@ public class KillerRender {
             case 2: setDirection(Direction.RIGHT); break;
             case 3: setDirection(Direction.UP); break;
             case 4: setDirection(Direction.DOWN); break;
+            case 5: setDirection(Direction.PUNCH); break; //5번은 PUNCH
             default: setDirection(Direction.IDLE); break;
         }
     }
@@ -116,17 +122,13 @@ public class KillerRender {
     // 현재 상태(방향)와 현재 프레임에 맞는 이미지를 반환
     public Image getImg() {
         switch (currentDirection) {
-            case LEFT:
-                return img_left[currentFrame];
-            case RIGHT:
-                return img_right[currentFrame];
-            case UP:
-                return img_up[currentFrame];
-            case DOWN:
-                return img_down[currentFrame];
+            case PUNCH: return img_punch; // [추가]
+            case LEFT:  return img_left[currentFrame];
+            case RIGHT: return img_right[currentFrame];
+            case UP:    return img_up[currentFrame];
+            case DOWN:  return img_down[currentFrame];
             case IDLE:
-            default:
-                return img_idle;
+            default:    return img_idle;
         }
     }
     

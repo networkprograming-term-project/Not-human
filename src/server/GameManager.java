@@ -91,7 +91,8 @@ public class GameManager extends JPanel implements ActionListener{
      	
      		//'D' 키를 눌렀을 때 공격 시도
             if (keyCode == 68 && isPressed) {
-                tryAttack();
+            	killer.triggerAttack(); // 공격 애니메이션 시작
+            	tryAttack();
             }
      	}
     }

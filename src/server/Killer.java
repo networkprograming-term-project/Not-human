@@ -18,6 +18,8 @@ public class Killer {
     private int width = new ImageIcon("src/img/seeker_left2.png").getImage().getWidth(null);
     private int height = new ImageIcon("src/img/seeker_down2.png").getImage().getHeight(null);
     
+    // 공격 애니메이션을 유지할 프레임 카운터
+    private int attackFrame = 0;
     private boolean keyLeft, keyRight, keyUp, keyDown;
     
     public Killer(String playerName) {
@@ -36,6 +38,12 @@ public class Killer {
     }
     
     public void update() {
+    	
+    	// 공격 프레임이 남아있으면 감소시킴
+        if (attackFrame > 0) {
+            attackFrame--;
+        }
+    	
         int dx = 0;
         int dy = 0;
         boolean isMoving = false;
@@ -71,6 +79,12 @@ public class Killer {
         posY = Math.max(0, Math.min(posY, GameManager.MAX_H - height));
     }
     
+    // 공격 시작 메서드 (GameManager에서 호출)
+    public void triggerAttack() {
+        // 약 20프레임 동안 공격 모션 유지
+        attackFrame = 20; 
+    }
+    
     // 목숨 감소
     public void decreaseLife() {
         if (life > 0) life--;
@@ -81,7 +95,12 @@ public class Killer {
     public void setName(String name) { this.playerName=name; }
     public int getPosX() { return posX; }
     public int getPosY() { return posY; }
-    public int getDirection() { return direction; }
+    public int getDirection() { 
+    	if (attackFrame > 0) {
+            return 5; // 5번은 공격 상태로 약속
+        }
+    	return direction; 
+    	}
     public int getLife() { return life; }
     
     // [추가] 충돌 감지를 위해 크기 반환
