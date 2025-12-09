@@ -27,6 +27,8 @@ public class NetworkClient extends JFrame {
     // 서버로 부터 받아올 게임 상태 메시지 (모든 정보를 담고있음);
     private volatile String serverGameStateMSG;
     
+    // 현재 실행 중인 게임 화면 참조
+    private InGameViewRunner gameRunner = null;
     
 	/**
 	 * Create the frame.
@@ -112,22 +114,40 @@ public class NetworkClient extends JFrame {
     	public void run() {
     		while(true) {
     			try {
-    				// 대기실로 게임 시작 상태를 구별
-    				if(isVisible()) {
-
-        				String msg = dis.readUTF();
-        				
-        				// 게임 실행 명령어 수신시 게임뷰 실행
+    				String msg = dis.readUTF();
+    				
+    				// 리셋 명령 처리
+                    if(msg.equals("/RESET")) {
+                        // 게임 화면 닫기
+                        if(gameRunner != null) {
+                            gameRunner.dispose();
+                            gameRunner = null;
+                        }
+                        
+                        // 대기실 화면 복구
+                        setVisible(true);
+                        
+                        // 버튼 초기화
+                        btnReady.setText("Ready?");
+                        btnReady.setBackground(Color.ORANGE);
+                        btnReady.setEnabled(true);
+                        
+                        AppendText("[시스템] 대기실로 복귀했습니다.\n");
+                        continue; // 다음 루프로
+                    }
+    				
+    				// 게임 실행 명령어 수신시 게임뷰 실행
+                    if(isVisible()) {
         				if(msg.equals("\n\n[GM] --> 모두 준비되어 게임을 시작하겠습니다. <--")) {
-        					new InGameViewRunner(NetworkClient.this);	// 게임화면 실행
+        					// [수정] runner 객체 저장
+        					gameRunner = new InGameViewRunner(NetworkClient.this);
         					setVisible(false);
         				}
-        				
         				AppendText(msg);
-    				} else { // 게임 시작했을 경우
-    					// 서버로 부터 받아온 게임 상태 메시지 (프레임마다 수신함)
-    					serverGameStateMSG = dis.readUTF();
-    					// 받아온 메시지는 인게임 뷰에서 2ms 단위로 변화를 주시
+    				} 
+                    // 인게임 로직 (게임 시작 후)
+                    else { 
+    					serverGameStateMSG = msg;
     				}
     			} catch(IOException e) {
     				AppendText("dis.read() error");

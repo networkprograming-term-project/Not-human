@@ -1,7 +1,7 @@
 // ServerManager.java - 수정된 구조
 package server;
 
-	import java.io.*;
+import java.io.*;
 import java.net.*;
 import java.util.*;
 import javax.swing.*;
@@ -101,6 +101,24 @@ public class ServerManager extends JFrame {
         textArea.append(str + "\n");
         textArea.setCaretPosition(textArea.getText().length());
     }
+    
+    // 게임 리셋 및 대기실 복귀 메서드
+    public void resetGame() {
+        AppendText("[System] 게임이 종료되어 대기실로 복귀합니다.");
+        
+        // 1. 게임 매니저 초기화
+        this.gameManager = null;
+        this.isGameStarting = false;
+        
+        // 2. 모든 유저의 준비 상태 해제
+        for(UserService user : UserVec) {
+            user.isReady = false;
+        }
+        
+        // 3. 클라이언트들에게 리셋 신호 전송
+        broadcast("/RESET");
+    }
+
 
     class UserService extends Thread {
         private DataInputStream dis;

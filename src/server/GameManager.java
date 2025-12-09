@@ -36,6 +36,9 @@ public class GameManager extends JPanel implements ActionListener{
     private int frameCount = 0; // 1초를 세기 위한 프레임 카운터
     private String gameState = "RUNNING"; // RUNNING, RUNNER_WIN, KILLER_WIN
     
+    // 종료 처리를 한 번만 실행하기 위한 플래그
+    private boolean isEndingProcessStarted = false;
+    
 	//------------------------클라이언트 정보-----------------------------------------//
 	Vector<String> playerNames;
 	private ServerManager serverManager; // 서버 매니저 참조 변수
@@ -150,27 +153,40 @@ public class GameManager extends JPanel implements ActionListener{
 	// ActionListener 인터페이스를 구현한 메소드, 타이머 이벤트가 발생할 때마다 호출
     public void actionPerformed(ActionEvent e) {
     	
-    	if (!gameState.equals("RUNNING")) return; // 게임 종료시 업데이트 중단
-
-        // 1초마다 시간 감소 (타이머가 15ms마다 돔. 1000/15 ≈ 66프레임)
-        frameCount++;
-        if (frameCount >= 66) {
-            remainingTime--;
-            frameCount = 0;
-        }
+    	if (!gameState.equals("RUNNING")) {
+            // [추가] 게임 종료 후 처리 로직
+            if(!isEndingProcessStarted) {
+                isEndingProcessStarted = true;
+                // 3초 뒤에 리셋 실행
+                new java.util.Timer().schedule(new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        if(timer != null) timer.stop();
+                        if(serverManager != null) serverManager.resetGame();
+                    }
+                }, 3000); //3초
+            }
+    	} else {
+	        // 1초마다 시간 감소 (타이머가 15ms마다 돔. 1000/15 ≈ 66프레임)
+	        frameCount++;
+	        if (frameCount >= 66) {
+	            remainingTime--;
+	            frameCount = 0;
+	        }
+	    	
+	    	//5ms 마다 플레임 업데이트
+	    	// 킬러 프레임 업데이트
+	    	updateKillerPosition(); // 킬러 프레임 업데이트
+	    	updatePlayerPosition(); // 플레이어 프레임 업데이트
+	        updateGameAiPosition(); // gameAI 프레임 업데이트
+	        
+	        // 연막탄 상태 업데이트
+	        updateSmokes();
+	        
+	        // 승패 판정 로직 호출
+	        checkGameResult();
+    	}
     	
-    	//5ms 마다 플레임 업데이트
-    	// 킬러 프레임 업데이트
-    	updateKillerPosition(); // 킬러 프레임 업데이트
-    	updatePlayerPosition(); // 플레이어 프레임 업데이트
-        updateGameAiPosition(); // gameAI 프레임 업데이트
-        
-        // 연막탄 상태 업데이트
-        updateSmokes();
-        
-        // 승패 판정 로직 호출
-        checkGameResult();
-        
         // 계산된 현재 상태를 모든 클라이언트에게 전송 (Broadcast)
         if(serverManager != null) {
         	serverManager.broadcast(getOneFrameStateMsg());
