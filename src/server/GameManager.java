@@ -157,14 +157,14 @@ public class GameManager extends JPanel implements ActionListener{
             // [추가] 게임 종료 후 처리 로직
             if(!isEndingProcessStarted) {
                 isEndingProcessStarted = true;
-                // 3초 뒤에 리셋 실행
+                // 5초 뒤에 리셋 실행
                 new java.util.Timer().schedule(new java.util.TimerTask() {
                     @Override
                     public void run() {
                         if(timer != null) timer.stop();
                         if(serverManager != null) serverManager.resetGame();
                     }
-                }, 3000); //3초
+                }, 5000); //5초
             }
     	} else {
 	        // 1초마다 시간 감소 (타이머가 15ms마다 돔. 1000/15 ≈ 66프레임)

@@ -271,28 +271,49 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
         // 배경 이미지 그리기.
         g.drawImage(backgroundImage, 0, 0, MAX_W, MAX_H, this);
         
-        // 플레이어 이미지 그리기.
+        // 현재 내가 술래인지 확인하는 플래그
+        boolean isAmKiller = false;
+        if (killerRender != null && networkClient.getUserName().equals(killerRender.getName())) {
+            isAmKiller = true;
+        }
+        
+        // 플레이어(도망자) 이미지 그리기.
         for (PlayerRender pr : playerRenderVec) {
+             // 1. 플레이어 캐릭터 그리기
              g.drawImage(pr.getImg(), pr.getPosX(), pr.getPosY(), this);
+             
+             // [수정] 내가 술래라면 도망자들의 이름표를 그리지 않고 넘어감 (continue)
+             if (isAmKiller) {
+                 continue;
+             }
+             
+             // --- 이 아래는 내가 도망자일 때만 실행됨 ---
+             
+             // 2. 이름표 설정
+             String nameToDraw = "-" + pr.getName()+ "-";
+             Color nameColor = Color.pink; // 기본 색상 (다른 유저)
+             
+             // 본인인 경우: 이름 앞에 화살표 추가 및 노란색 설정
              if(pr.getName().equals(networkClient.getUserName())) {
-            	 // 본인 디스플레이에만 이름 표시
-            	 String name = "▼ " + pr.getName(); // 이름 앞에 화살표 추가
-                 
-                 // 위치 계산 (캐릭터 머리 위 중앙)
-                 int textX = pr.getPosX() - 5; 
-                 int textY = pr.getPosY() - 10;
-
-                 // [테두리 효과] 검은색으로 4방향에 먼저 그림 (그림자 역할)
-                 g.setColor(Color.BLACK);
-                 g.drawString(name, textX - 1, textY);
-                 g.drawString(name, textX + 1, textY);
-                 g.drawString(name, textX, textY - 1);
-                 g.drawString(name, textX, textY + 1);
-                 
-                 // [메인 글씨] 밝은 노란색으로 그 위에 덮어씀 (가시성 확보)
-                 g.setColor(Color.YELLOW); 
-                 g.drawString(name, textX, textY);
+            	 nameToDraw = "▼ " + pr.getName()+ " ▼ "; 
+            	 nameColor = Color.YELLOW;
              } 
+             
+             // 3. 이름표 그리기
+             // 위치 계산 (캐릭터 머리 위 중앙)
+             int textX = pr.getPosX() - 7; 
+             int textY = pr.getPosY() - 10;
+
+             // [테두리 효과] 검은색으로 4방향에 먼저 그림
+             g.setColor(Color.BLACK);
+             g.drawString(nameToDraw, textX - 1, textY);
+             g.drawString(nameToDraw, textX + 1, textY);
+             g.drawString(nameToDraw, textX, textY - 1);
+             g.drawString(nameToDraw, textX, textY + 1);
+             
+             // [메인 글씨] 설정한 색상으로 덮어씀
+             g.setColor(nameColor); 
+             g.drawString(nameToDraw, textX, textY);
         }
         
         // GameAI 이미지 그리기.
@@ -307,10 +328,10 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
             
             if(killerRender.getName().equals(networkClient.getUserName())) {
             	// 본인 디스플레이에만 이름 표시
-            	String name = "▼ " + killerRender.getName(); // 이름 앞에 화살표 추가
+            	String name = "▼ " + killerRender.getName() + " ▼"; // 이름 앞에 화살표 추가
                 
                 // 위치 계산 (캐릭터 머리 위 중앙)
-                int textX = killerRender.getPosX() - 5; 
+                int textX = killerRender.getPosX() - 7; 
                 int textY = killerRender.getPosY() - 10;
 
                 // [테두리 효과] 검은색으로 4방향에 먼저 그림 (그림자 역할)
@@ -326,7 +347,6 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
             } 
         }
         
-        // 여기서 중요함 그리기 순서가 4번째, 플레이어랑 술래보단 위에있고 UI보단 아래 있어야함 @@!@!#$!$$!@$ 매우 중요!!
         // 연막탄 (플레이어/킬러보다 상위 레이어 -> 가려짐 효과)
         if (img_smoke != null) {
             for (SmokeInfo s : smokeList) {
