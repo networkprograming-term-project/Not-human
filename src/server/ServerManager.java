@@ -139,6 +139,13 @@ public class ServerManager extends JFrame {
 
                 AppendText("입장: " + UserName);
                 WriteAll("[" + UserName + "]님이 입장하였습니다.\n");
+                // 클라이언트는 이 메시지를 받으면 자동으로 카드를 추가.
+                for (int i = 0; i < UserVec.size(); i++) {
+                    UserService user = UserVec.get(i);
+                    if (user != null) {
+                        WriteOne("[" + user.UserName + "]님이 입장하였습니다.\n");
+                    }
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -165,7 +172,6 @@ public class ServerManager extends JFrame {
             WriteAll("[" + UserName + "]님이 퇴장하였습니다.\n");
         }
 
-        // [요청하신 run 메서드 전체 코드]
         @Override
         public void run() {
             while (true) {
@@ -179,7 +185,7 @@ public class ServerManager extends JFrame {
                     String[] parts = msg.split(" ");
                     String command = parts[0];
 
-                    // [Case A] 게임 준비
+                    // 게임 준비
                     if (command.equals("/READY")) {
                         isReady = true;
                         WriteAll(String.format("--- [%s]님이 준비를 완료하셨습니다! ---\n", UserName));
@@ -194,7 +200,7 @@ public class ServerManager extends JFrame {
                         if (readyCnt == UserVec.size() && UserVec.size() >= 1 && !isGameStarting) {
                             isGameStarting = true; // 중복 실행 방지 플래그 설정
                             
-                            // 별도 스레드에서 카운트다운 실행 (통신 블로킹 방지)
+                            // 별도 스레드에서 카운트다운 실행
                             new Thread(() -> {
                                 try {
                                     WriteAll("\n[시스템] 모든 플레이어가 준비되었습니다.\n");
@@ -218,19 +224,19 @@ public class ServerManager extends JFrame {
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 } finally {
-                                    isGameStarting = false; // 플래그 해제 (필요 시)
+                                    isGameStarting = false; // 플래그 해제 
                                 }
                             }).start();
                         }
                     }
-                    // [Case B] 키 입력 중계 (/KEY)
+                    // 키 입력 중계 (/KEY)
                     else if (command.equals("/KEY")) {
                         // 게임이 시작된 상태라면 매니저에게 전달
                         if (gameManager != null) {
                             gameManager.handleInput(UserName, msg);
                         }
                     }
-                    // [Case C] 일반 채팅
+                    // 일반 채팅
                     else {
                         WriteAll(msg + "\n");
                     }

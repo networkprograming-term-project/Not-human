@@ -103,7 +103,7 @@ public class Killer {
     	}
     public int getLife() { return life; }
     
-    // [추가] 충돌 감지를 위해 크기 반환
+    // 충돌 감지를 위해 크기 반환
     public int getWidth() { return width; }
     public int getHeight() { return height; }
 }

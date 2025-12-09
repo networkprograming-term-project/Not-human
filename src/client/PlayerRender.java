@@ -23,7 +23,7 @@ public class PlayerRender{
     
     // 현재 상태 및 프레임 변수
     private Direction currentDirection = Direction.IDLE;
-    private int currentFrame = 0; // 0 또는 1 (두 개의 이미지를 교차)
+    private int currentFrame = 0; // 0 또는 1
     
     // 이미지 크기 변수
     private int width;

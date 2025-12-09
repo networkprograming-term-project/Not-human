@@ -55,8 +55,7 @@ public class ClientExe extends JFrame {
 		setLocationRelativeTo(null); // 화면 정중앙에 창 띄우기
 		
 		// ---------------------------------------------------------
-		// 3. 중앙 하단에 배치할 "입력 박스(패널)" 생성
-		// ---------------------------------------------------------
+		// 중앙 하단에 배치할 "입력 박스(패널)" 생성
 		JPanel inputPanel = new JPanel();
 		inputPanel.setLayout(null); // 박스 내부도 절대 좌표 사용
 		
@@ -74,11 +73,8 @@ public class ClientExe extends JFrame {
 		contentPane.add(inputPanel); // 메인 화면에 박스 추가
 
 		// ---------------------------------------------------------
-		// 4. 컴포넌트들을 박스(inputPanel) 내부에 추가
-		//    (좌표는 이제 inputPanel의 왼쪽 위(0,0)가 기준이 됩니다)
-		// ---------------------------------------------------------
+		// 컴포넌트들을 박스(inputPanel) 내부에 추가
 		
-		// [Row 1] User Name
 		JLabel lblUserName = new JLabel("User Name");
 		lblUserName.setBounds(20, 20, 100, 30);
 		lblUserName.setFont(new Font("Malgun Gothic", Font.BOLD, 14)); // 폰트 크기 조정
@@ -90,7 +86,6 @@ public class ClientExe extends JFrame {
 		inputPanel.add(txtUserName);
 		txtUserName.setColumns(10);
 		
-		// [Row 2] IP Address
 		JLabel lblIpAddress = new JLabel("IP Address");
 		lblIpAddress.setBounds(20, 70, 100, 30);
 		lblIpAddress.setFont(new Font("Malgun Gothic", Font.BOLD, 14));
@@ -102,7 +97,6 @@ public class ClientExe extends JFrame {
 		txtIpAddress.setBounds(130, 70, 150, 30);
 		inputPanel.add(txtIpAddress);
 		
-		// [Row 3] Port Number
 		JLabel lblPortNumber = new JLabel("Port Number");
 		lblPortNumber.setBounds(20, 120, 100, 30);
 		lblPortNumber.setFont(new Font("Malgun Gothic", Font.BOLD, 14));
@@ -114,11 +108,10 @@ public class ClientExe extends JFrame {
 		txtPortNumber.setBounds(130, 120, 150, 30);
 		inputPanel.add(txtPortNumber);
 		
-		// [Row 4] Connect Button
 		JButton btnConnect = new JButton("Connect");
 		btnConnect.setBounds(20, 180, 260, 40); // 박스 너비에 맞춰 꽉 차게
 		btnConnect.setFont(new Font("Malgun Gothic", Font.BOLD, 16));
-		btnConnect.setBackground(new Color(50, 100, 200)); // 버튼 색상 (파란 계열)
+		btnConnect.setBackground(new Color(50, 100, 200)); // 버튼 색상
 		btnConnect.setForeground(Color.WHITE); // 글자 색상 (흰색)
 		inputPanel.add(btnConnect);
 		

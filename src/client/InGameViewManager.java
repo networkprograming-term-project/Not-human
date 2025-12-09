@@ -304,14 +304,14 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
              int textX = pr.getPosX() - 7; 
              int textY = pr.getPosY() - 10;
 
-             // [테두리 효과] 검은색으로 4방향에 먼저 그림
+             // 글자 테두리
              g.setColor(Color.BLACK);
              g.drawString(nameToDraw, textX - 1, textY);
              g.drawString(nameToDraw, textX + 1, textY);
              g.drawString(nameToDraw, textX, textY - 1);
              g.drawString(nameToDraw, textX, textY + 1);
              
-             // [메인 글씨] 설정한 색상으로 덮어씀
+             // 메인 글씨
              g.setColor(nameColor); 
              g.drawString(nameToDraw, textX, textY);
         }
@@ -333,21 +333,19 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
                 // 위치 계산 (캐릭터 머리 위 중앙)
                 int textX = killerRender.getPosX() - 7; 
                 int textY = killerRender.getPosY() - 10;
-
-                // [테두리 효과] 검은색으로 4방향에 먼저 그림 (그림자 역할)
+       
                 g.setColor(Color.BLACK);
                 g.drawString(name, textX - 1, textY);
                 g.drawString(name, textX + 1, textY);
                 g.drawString(name, textX, textY - 1);
                 g.drawString(name, textX, textY + 1);
-                
-                // [메인 글씨] 밝은 노란색으로 그 위에 덮어씀 (가시성 확보)
+
                 g.setColor(Color.RED); 
                 g.drawString(name, textX, textY);
             } 
         }
         
-        // 연막탄 (플레이어/킬러보다 상위 레이어 -> 가려짐 효과)
+        // 연막탄
         if (img_smoke != null) {
             for (SmokeInfo s : smokeList) {
                 // 중심 좌표 기준으로 그리기 (x - size/2, y - size/2)
@@ -363,9 +361,6 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
     private void drawUI(Graphics g) {
         // ---------------------------------------------------------
         //  술래 목숨 (좌측 상단 하트) 술래 본인에게만 보이도록 수정
-        // ---------------------------------------------------------
-        // networkClient.getUserName(): 내 이름
-        // killerRender.getName(): 술래 이름
         if (killerRender != null && networkClient.getUserName().equals(killerRender.getName())) {
             int heartX = 20;
             int heartY = 20;
@@ -400,8 +395,7 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
         
         // ---------------------------------------------------------
         // 도망자 연막탄 아이템 UI (왼쪽 상단, 하트와 비슷한 위치)
-        // ---------------------------------------------------------
-        // 현재 내가 도망자(Player)인지 확인
+        // 현재 내가 도망저 인지 확인
         boolean isMeRunner = false;
         for(PlayerRender pr : playerRenderVec) {
             if(pr.getName().equals(networkClient.getUserName())) {
@@ -437,8 +431,7 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
         }
 
         // ---------------------------------------------------------
-        // (2) 남은 시간 (중앙 상단) - 모두에게 보임
-        // ---------------------------------------------------------
+        // 남은 시간 (중앙 상단) - 모두에게 보임
         g.setFont(new Font("Malgun Gothic", Font.BOLD, 30));
         g.setColor(Color.WHITE);
         String timeStr = "Time: " + remainingTime;
@@ -446,8 +439,7 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
         g.drawString(timeStr, (MAX_W - timeWidth) / 2, 50);
 
         // ---------------------------------------------------------
-        // (3) 생존자 수 (우측 상단) - 모두에게 보임
-        // ---------------------------------------------------------
+        // 생존자 수 (우측 상단) - 모두에게 보임
         int survivorCount = 0;
         for(PlayerRender pr : playerRenderVec) {
             if(pr.isAlive()) survivorCount++;
@@ -457,8 +449,7 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
         g.drawString(survivorStr, MAX_W - survivorWidth - 30, 50);
         
         // ---------------------------------------------------------
-        // (4) 게임 결과 메시지 (화면 중앙) - 종료 상태일 때만 보임
-        // ---------------------------------------------------------
+        // 게임 결과 메시지 (화면 중앙) - 종료 상태일 때만 보임
         if (!currentGameState.equals("RUNNING")) {
             g.setColor(new Color(0, 0, 0, 150)); // 반투명 배경
             g.fillRect(0, 0, MAX_W, MAX_H);
@@ -490,7 +481,7 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
         networkClient.SendMessage("/KEY RELEASE " + e.getKeyCode());
     }
 
-    // KeyListener 인터페이스의 메소드, 키 타이핑 이벤트를 처리, 여기서는 구현x
+    // KeyListener 인터페이스의 메소드, 키 타이핑 이벤트를 처리
     public void keyTyped(KeyEvent e) { }
 
 }

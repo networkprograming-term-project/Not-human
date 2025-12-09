@@ -57,7 +57,6 @@ public class KillerRender {
     
     private void initImages() {
         try {
-            // [변경됨] player_ -> seeker_ 로 이미지 경로 변경
             img_idle = new ImageIcon("src/img/seeker_idle.png").getImage();
 
             img_left[0] = new ImageIcon("src/img/seeker_left1.png").getImage();
@@ -82,20 +81,21 @@ public class KillerRender {
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Killer 이미지 로딩 실패: " + e.getMessage());
-            // 이미지가 없어도 실행은 되도록 종료는 하지 않음 (필요시 System.exit(1) 추가)
+            // 이미지가 없어도 실행은 되도록 종료는 하지 않음
         }
         isAlive = true;
     }
     
     // 서버에서 받은 정수형 방향 코드를 처리하는 메서드
-    // 0:IDLE, 1:LEFT, 2:RIGHT, 3:UP, 4:DOWN
+    // 0:IDLE, 1:LEFT, 2:RIGHT, 3:UP, 4:DOWN, 5: PUNCH
+    // 수석 달다 손가락 빠지것다 ㅋㅋ
     public void setDirection(int dirCode) {
         switch(dirCode) {
             case 1: setDirection(Direction.LEFT); break;
             case 2: setDirection(Direction.RIGHT); break;
             case 3: setDirection(Direction.UP); break;
             case 4: setDirection(Direction.DOWN); break;
-            case 5: setDirection(Direction.PUNCH); break; //5번은 PUNCH
+            case 5: setDirection(Direction.PUNCH); break;
             default: setDirection(Direction.IDLE); break;
         }
     }
@@ -122,7 +122,7 @@ public class KillerRender {
     // 현재 상태(방향)와 현재 프레임에 맞는 이미지를 반환
     public Image getImg() {
         switch (currentDirection) {
-            case PUNCH: return img_punch; // [추가]
+            case PUNCH: return img_punch;
             case LEFT:  return img_left[currentFrame];
             case RIGHT: return img_right[currentFrame];
             case UP:    return img_up[currentFrame];

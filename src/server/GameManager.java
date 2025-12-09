@@ -30,7 +30,7 @@ public class GameManager extends JPanel implements ActionListener{
 	public static final int MAX_H = 800; // 맵 수직
 	int gameTime = 180;
 	
-	// 게임 시간 설정 (초 단위, 60초)
+	// 게임 시간 설정
     public static final int GAME_DURATION = 60; 
     private int remainingTime = GAME_DURATION;
     private int frameCount = 0; // 1초를 세기 위한 프레임 카운터
@@ -54,7 +54,7 @@ public class GameManager extends JPanel implements ActionListener{
 			String picked = playerNames.remove(index);
 			killer = new Killer(picked);
 		} else {
-			// 테스트용 더미 킬러 (혼자 접속 시 에러 방지)
+			// 테스트용 더미 킬러 
 			killer = new Killer("DummyKiller");
 		}
 	    
@@ -68,16 +68,15 @@ public class GameManager extends JPanel implements ActionListener{
 			gameAiVec.add(new GameAi(i));
 		}
 		
-		// 게임 루프 시작 (15ms)
+		// 게임 루프 시작 
 		timer = new Timer(15, this); 
         timer.start(); // 타이머 시작
 	}
 	
 	// 클라이언트의 키 입력을 처리하는 메서드
     public void handleInput(String playerName, String msg) {
-        // msg 예시: "/KEY PRESS 37" (37=Left)
         String[] parts = msg.split(" ");
-        String action = parts[1]; // PRESS or RELEASE
+        String action = parts[1]; 
         int keyCode = Integer.parseInt(parts[2]);
         boolean isPressed = action.equals("PRESS");
         
@@ -154,7 +153,7 @@ public class GameManager extends JPanel implements ActionListener{
     public void actionPerformed(ActionEvent e) {
     	
     	if (!gameState.equals("RUNNING")) {
-            // [추가] 게임 종료 후 처리 로직
+            // 게임 종료 후 처리 로직
             if(!isEndingProcessStarted) {
                 isEndingProcessStarted = true;
                 // 5초 뒤에 리셋 실행
@@ -167,7 +166,7 @@ public class GameManager extends JPanel implements ActionListener{
                 }, 5000); //5초
             }
     	} else {
-	        // 1초마다 시간 감소 (타이머가 15ms마다 돔. 1000/15 ≈ 66프레임)
+	        // 1초마다 시간 감소 
 	        frameCount++;
 	        if (frameCount >= 66) {
 	            remainingTime--;
@@ -187,7 +186,7 @@ public class GameManager extends JPanel implements ActionListener{
 	        checkGameResult();
     	}
     	
-        // 계산된 현재 상태를 모든 클라이언트에게 전송 (Broadcast)
+        // 계산된 현재 상태를 모든 클라이언트에게 전송
         if(serverManager != null) {
         	serverManager.broadcast(getOneFrameStateMsg());
         }
@@ -215,7 +214,7 @@ public class GameManager extends JPanel implements ActionListener{
             return;
         }
 
-        // 2. 술래 승리 조건: 모든 도망자가 잡힘 (alive가 하나도 없음)
+        // 2. 술래 승리 조건: 모든 도망자가 잡힘 
         boolean anySurvivor = false;
         for (Player p : playerVec) {
             if (p.isAlive()) {
@@ -235,7 +234,7 @@ public class GameManager extends JPanel implements ActionListener{
     	killer.update(); // Killer 내부 이동 로직 호출
     }
     
-    // 플레이어 위치 업데이트 (물리 연산)
+    // 플레이어 위치 업데이트 
     private void updatePlayerPosition() {
     	for(Player player: playerVec) {
     		player.update(); // Player 내부 이동 로직 호출

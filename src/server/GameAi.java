@@ -57,7 +57,7 @@ public class GameAi {
         	goalDirection =  (int)(Math.random()*9);
         	goalDistance = ((int)(Math.random()*400) + 50);
         	
-        	// [추가] 목표 방향(goalDirection 0~8)에 따라 전송용 imgState(0~4) 설정
+        	// 목표 방향(goalDirection 0~8)에 따라 전송용 imgState(0~4) 설정
         	updateImgState();
         	
         	switch (goalDirection){
@@ -112,7 +112,7 @@ public class GameAi {
         }
 	}
 	
-	// [신규 메서드] 8방향을 4방향 코드로 변환
+	// 8방향을 4방향 코드로 변환
 	private void updateImgState() {
 		if (goalDirection == 8) {
 			imgState = 0; // IDLE

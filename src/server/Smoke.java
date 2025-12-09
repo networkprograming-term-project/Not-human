@@ -3,7 +3,7 @@ package server;
 public class Smoke {
     private int x, y;
     private int currentSize;
-    private int lifeTime; // 수명 (프레임 단위)
+    private int lifeTime; // 수명 
     
     // 설정
     private static final int MAX_LIFE = 500; 
