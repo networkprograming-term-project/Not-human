@@ -22,7 +22,8 @@ public class GameManager extends JPanel implements ActionListener{
 	private Killer killer; // 킬러
 	private Vector<Player> playerVec = new Vector<>(); // 도망자 player를 관리하는 벡터
 	private Vector<GameAi> gameAiVec = new Vector<>(); // gameAi를 관리하는 벡터
-
+    private Vector<Smoke> smokeVec = new Vector<>(); // 활성화된 연막탄들을 관리하는 리스트
+	
 	//-----------------------게임 상태 관련 변수---------------------------------------//
 	private Timer timer; // 게임 업데이트를 위한 타이머
 	public static final int MAX_W = 1300; // 맵 수편
@@ -78,9 +79,20 @@ public class GameManager extends JPanel implements ActionListener{
         boolean isPressed = action.equals("PRESS");
         
         // 플레이어 입력 처리
-     	for(Player p : playerVec) {
+        for(Player p : playerVec) {
      		if(p.getName().equals(playerName)) {
-     			p.setKeyInput(keyCode, isPressed); // Player 클래스에 해당 메서드 필요
+     			p.setKeyInput(keyCode, isPressed);
+     			
+     			// 도망자가 D 누르면 연막탄 사용
+     			if (keyCode == 68 && isPressed) {
+                    if (p.useSmokeItem()) {
+                        // 플레이어 위치 중심에 연막탄 생성
+                        int smokeX = p.getPosX() + p.getWidth() / 2;
+                        int smokeY = p.getPosY() + p.getHeight() / 2;
+                        smokeVec.add(new Smoke(smokeX, smokeY));
+                        System.out.println("[GAME] " + p.getName() + " used Smoke! Left: " + p.getSmokeCount());
+                    }
+                }
      			return;
      		}
      	}
@@ -153,12 +165,27 @@ public class GameManager extends JPanel implements ActionListener{
     	updatePlayerPosition(); // 플레이어 프레임 업데이트
         updateGameAiPosition(); // gameAI 프레임 업데이트
         
+        // 연막탄 상태 업데이트
+        updateSmokes();
+        
         // 승패 판정 로직 호출
         checkGameResult();
         
         // 계산된 현재 상태를 모든 클라이언트에게 전송 (Broadcast)
         if(serverManager != null) {
         	serverManager.broadcast(getOneFrameStateMsg());
+        }
+    }
+    
+    // 연막탄 업데이트 및 제거 로직
+    private void updateSmokes() {
+        Iterator<Smoke> it = smokeVec.iterator();
+        while (it.hasNext()) {
+            Smoke s = it.next();
+            s.update();
+            if (s.isExpired()) {
+                it.remove(); // 수명 다하면 삭제
+            }
         }
     }
     
@@ -232,8 +259,9 @@ public class GameManager extends JPanel implements ActionListener{
 		
 		//--------- player 정보 붙이기------------------------//
         for(Player p : playerVec) {
-        	sb.append(String.format("%s,%d,%d,%d,%d/", 
-                    p.getName(), p.getPosX(), p.getPosY(), p.getDirection(), p.isAlive() ? 1 : 0));
+            // Format: 이름,X,Y,방향,생존여부,아이템개수
+        	sb.append(String.format("%s,%d,%d,%d,%d,%d/", 
+                    p.getName(), p.getPosX(), p.getPosY(), p.getDirection(), p.isAlive() ? 1 : 0, p.getSmokeCount()));
         }
         sb.append("@");
 		
@@ -246,7 +274,12 @@ public class GameManager extends JPanel implements ActionListener{
         // GameState 정보: 상태와 남은 시간을 같이 보냄 (구분자 :)
         // 예: RUNNING:55 or RUNNER_WIN:0
         sb.append(gameState + ":" + remainingTime);
-		
+        sb.append("@");
+        
+        //---------- Smoke 정보 붙이기-----------------------------//
+        for(Smoke s : smokeVec) {
+            sb.append(String.format("%d,%d,%d/", s.getX(), s.getY(), s.getSize()));
+        }
 		return sb.toString();
 	}
 }

@@ -12,6 +12,9 @@ public class Player {
     private int posY;
     private int direction=0; // 0:IDLE, 1:LEFT, 2:RIGHT, 3:UP, 4:DOWN
     
+    // 연막탄 개수 (기본 3개)
+    private int smokeCount = 3;
+    
     private final static int speed = 1;
     private int width = new ImageIcon("src/img/player_left2.png").getImage().getWidth(null);
     private int height = new ImageIcon("src/img/player_down2.png").getImage().getHeight(null);
@@ -77,13 +80,25 @@ public class Player {
         posY = Math.max(0, Math.min(posY, GameManager.MAX_H - height));
     }
     
-    // [추가] Getter, Setter
+    // 아이템 사용 시도 (성공하면 true, 개수 감소)
+    public boolean useSmokeItem() {
+        if (smokeCount > 0 && isAlive) {
+            smokeCount--;
+            return true;
+        }
+        return false;
+    }
+    
+    // Getter, Setter
     public boolean isAlive() { return isAlive; }
     public void setAlive(boolean isAlive) { this.isAlive = isAlive; }
     
-    // [추가] 충돌 감지를 위해 크기 반환
+    // 충돌 감지를 위해 크기 반환
     public int getWidth() { return width; }
     public int getHeight() { return height; }
+    
+    // 연막탄 카운트
+    public int getSmokeCount() { return smokeCount; }
     
 	public String getName() { return playerName; }
     public int getPosX() { return posX; }

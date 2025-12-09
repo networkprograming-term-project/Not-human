@@ -30,7 +30,7 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
     private int currentKillerLife = 3;
     private int remainingTime = 0;
     private String currentGameState = "RUNNING";
-	
+    
     //-----------------------게임 내 객체들---------------------------------------//
 	private PlayerRender playerRender; // 도망자
   	private KillerRender killerRender; // 킬러
@@ -40,6 +40,20 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
 	//---------------데이터 송수신 관련-----------------//
   	NetworkClient networkClient; // 서버와 송수신할 함수를 가지고있는 객체
 	
+  	
+  	//-------------- 연막탄 관련 변수--------------------//
+    private Image img_smoke;      // 연막 효과 이미지
+    private Image img_smoke_item; // UI 아이콘 이미지
+    private int mySmokeCount = 3; // 내 남은 연막탄 개수
+    
+    // 연막탄 렌더링 정보 저장을 위한 간단한 클래스 (내부 클래스로 사용)
+    class SmokeInfo {
+        int x, y, size;
+        public SmokeInfo(int x, int y, int size) { this.x=x; this.y=y; this.size=size; }
+    }
+    // 연막탄 관리 백터 
+    private Vector<SmokeInfo> smokeList = new Vector<>();
+    
 	
 	public InGameViewManager(NetworkClient networkClient) {
 		// 서버와 통신할 객체 등록
@@ -67,6 +81,12 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
             // 이미지가 없을 경우를 대비해 null 처리
         }
 		
+        // 연막탄, 연막탄 아이템 ui 로드
+        try {
+            img_smoke = new ImageIcon("src/img/smoke.png").getImage();
+            img_smoke_item = new ImageIcon("src/img/smoke_item.png").getImage(); 
+        } catch (Exception e) { }
+        
 		addKeyListener(this); // 키 리스너 추가
 		setFocusable(true); // 키 입력을 받기 위해 포커스 가능하도록 설정
 	    setPreferredSize(new Dimension(MAX_W, MAX_H)); // 패널의 선호 사이즈 설정
@@ -84,7 +104,8 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
     	// 아직 서버에서 아무 것도 못 받은 경우 방어
     	if (serverMsg == null || !serverMsg.contains("@")) return;
 
-        String[] arr = serverMsg.split("@");
+    	// split limit을 -1로 주어 빈 데이터도 배열에 포함되게 함
+        String[] arr = serverMsg.split("@", -1); 
         if (arr.length < 4) return;
     	
         
@@ -120,15 +141,21 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
     	    for(String pData : pDatas) {
     	        String[] info = pData.split(",");
     	        
-    	        // [수정] 데이터 길이가 5개여야 함 (Alive 정보 추가됨)
+    	        // 데이터 길이가 5개여야 함 (Alive 정보 추가됨)
     	        if(info.length < 5) continue; 
 
     	        String pName = info[0];
     	        int x = Integer.parseInt(info[1]);
     	        int y = Integer.parseInt(info[2]);
     	        int dir = Integer.parseInt(info[3]);
-    	        int aliveStatus = Integer.parseInt(info[4]); // [추가] 1=Alive, 0=Dead
+    	        int aliveStatus = Integer.parseInt(info[4]); // 1=Alive, 0=Dead
+    	        int itemCount = Integer.parseInt(info[5]); // 아이템 개수
     	        boolean isAlive = (aliveStatus == 1);
+    	        
+    	        // 내 캐릭터라면 아이템 개수 업데이트 (UI 표시용)
+                if (pName.equals(networkClient.getUserName())) {
+                    mySmokeCount = itemCount;
+                }
 
     	        // 해당 이름의 플레이어가 벡터에 있는지 확인
     	        boolean found = false;
@@ -137,7 +164,7 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
     	                pr.setPosX(x);
     	                pr.setPosY(y);
     	                pr.setDirection(dir);
-    	                pr.setAlive(isAlive); // [추가] 생존 상태 업데이트
+    	                pr.setAlive(isAlive); // 생존 상태 업데이트
     	                found = true;
     	                break;
     	            }
@@ -193,6 +220,24 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
                 String resultMsg = currentGameState.equals("RUNNER_WIN") ? "도망자 승리!" : "술래 승리!";
                 JOptionPane.showMessageDialog(this, resultMsg);
                 // 필요 시 로비로 이동하거나 종료 코드 추가
+            }
+        }
+        
+        //------------------   Smoke 파싱 ---------------------------//
+        smokeList.clear(); // 매 프레임 새로 받으므로 초기화
+        if (arr.length > 4) {
+            String smokeMsg = arr[4];
+            if (!smokeMsg.isEmpty()) {
+                String[] smokes = smokeMsg.split("/");
+                for (String sData : smokes) {
+                    String[] sInfo = sData.split(",");
+                    if (sInfo.length >= 3) {
+                        int sx = Integer.parseInt(sInfo[0]);
+                        int sy = Integer.parseInt(sInfo[1]);
+                        int size = Integer.parseInt(sInfo[2]);
+                        smokeList.add(new SmokeInfo(sx, sy, size));
+                    }
+                }
             }
         }
     	
@@ -281,6 +326,15 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
             } 
         }
         
+        // 여기서 중요함 그리기 순서가 4번째, 플레이어랑 술래보단 위에있고 UI보단 아래 있어야함 @@!@!#$!$$!@$ 매우 중요!!
+        // 연막탄 (플레이어/킬러보다 상위 레이어 -> 가려짐 효과)
+        if (img_smoke != null) {
+            for (SmokeInfo s : smokeList) {
+                // 중심 좌표 기준으로 그리기 (x - size/2, y - size/2)
+                g.drawImage(img_smoke, s.x - s.size/2, s.y - s.size/2, s.size, s.size, this);
+            }
+        }
+        
         // UI 그리기 (최상단 레이어)
         drawUI(g);
 	}
@@ -288,7 +342,7 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
 	// UI 그리는 메서드
     private void drawUI(Graphics g) {
         // ---------------------------------------------------------
-        // (1) 술래 목숨 (좌측 상단 하트) - ★ 술래 본인에게만 보이도록 수정 ★
+        //  술래 목숨 (좌측 상단 하트) 술래 본인에게만 보이도록 수정
         // ---------------------------------------------------------
         // networkClient.getUserName(): 내 이름
         // killerRender.getName(): 술래 이름
@@ -322,6 +376,44 @@ public class InGameViewManager extends JPanel implements KeyListener, ActionList
             g.setColor(Color.WHITE);
             g.setFont(new Font("Malgun Gothic", Font.BOLD, 15));
             g.drawString("Attack Chance", heartX, heartY + heartSize + 15);
+        }
+        
+        // ---------------------------------------------------------
+        // 도망자 연막탄 아이템 UI (왼쪽 상단, 하트와 비슷한 위치)
+        // ---------------------------------------------------------
+        // 현재 내가 도망자(Player)인지 확인
+        boolean isMeRunner = false;
+        for(PlayerRender pr : playerRenderVec) {
+            if(pr.getName().equals(networkClient.getUserName())) {
+                isMeRunner = true;
+                break;
+            }
+        }
+
+        if (isMeRunner) {
+            int itemX = 20;
+            int itemY = 20;
+            int itemSize = 40;
+            int padding = 5;
+            
+            // 아이템 개수만큼 그리기
+            for (int i = 0; i < 3; i++) {
+                if (i < mySmokeCount) {
+                    if (img_smoke_item != null) {
+                        g.drawImage(img_smoke_item, itemX + (itemSize + padding) * i, itemY, itemSize, itemSize, this);
+                    } else {
+                        // 이미지가 없으면 회색 원으로 표시
+                        g.setColor(Color.DARK_GRAY);
+                        g.fillOval(itemX + (itemSize + padding) * i, itemY, itemSize, itemSize);
+                    }
+                }
+                // 사용한 것은 그리지 않음 (visible false 효과)
+            }
+            
+            // 텍스트 표시 (선택)
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Malgun Gothic", Font.BOLD, 15));
+            g.drawString("Smoke Grenade (D)", itemX, itemY + itemSize + 15);
         }
 
         // ---------------------------------------------------------
