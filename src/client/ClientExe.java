@@ -8,17 +8,13 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 
-
-public class ClientExe  extends JFrame {
+public class ClientExe extends JFrame {
 
 	private JPanel contentPane;
 	private JTextField txtUserName;
 	private JTextField txtIpAddress;
 	private JTextField txtPortNumber;
 
-	/**
-	 * Launch the application.
-	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -32,52 +28,101 @@ public class ClientExe  extends JFrame {
 		});
 	}
 
-	/**
-	 * Create the frame.
-	 */
 	public ClientExe() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 254, 321);
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
-		contentPane.setLayout(null);
 		
-		JLabel lblNewLabel = new JLabel("User Name");
-		lblNewLabel.setBounds(12, 39, 82, 33);
-		contentPane.add(lblNewLabel);
+		// 1. 배경 이미지 로드
+		ImageIcon icon = new ImageIcon("src/img/title.png");
+		Image img = icon.getImage();
+		int imgWidth = icon.getIconWidth();
+		int imgHeight = icon.getIconHeight();
+
+		// 2. 배경을 그리는 contentPane 생성
+		contentPane = new JPanel() {
+			@Override
+			public void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				g.drawImage(img, 0, 0, getWidth(), getHeight(), this);
+			}
+		};
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		contentPane.setLayout(null); // 절대 좌표 사용
+		
+		// 창 크기를 이미지 크기에 맞춤
+		contentPane.setPreferredSize(new Dimension(imgWidth, imgHeight));
+		setContentPane(contentPane);
+		pack();
+		setLocationRelativeTo(null); // 화면 정중앙에 창 띄우기
+		
+		// ---------------------------------------------------------
+		// 3. 중앙 하단에 배치할 "입력 박스(패널)" 생성
+		// ---------------------------------------------------------
+		JPanel inputPanel = new JPanel();
+		inputPanel.setLayout(null); // 박스 내부도 절대 좌표 사용
+		
+		// 박스 디자인 설정 (반투명 흰색 배경, 검은 테두리)
+		inputPanel.setBackground(new Color(255, 255, 255, 150)); // Alpha 150 = 반투명
+		inputPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+		
+		// 박스 크기 및 위치 계산
+		int boxWidth = 320;
+		int boxHeight = 250;
+		int boxX = (imgWidth - boxWidth) / 2; // 가로 중앙 정렬
+		int boxY = imgHeight - boxHeight - 50; // 바닥에서 50px 위로 띄움
+		
+		inputPanel.setBounds(boxX, boxY, boxWidth, boxHeight);
+		contentPane.add(inputPanel); // 메인 화면에 박스 추가
+
+		// ---------------------------------------------------------
+		// 4. 컴포넌트들을 박스(inputPanel) 내부에 추가
+		//    (좌표는 이제 inputPanel의 왼쪽 위(0,0)가 기준이 됩니다)
+		// ---------------------------------------------------------
+		
+		// [Row 1] User Name
+		JLabel lblUserName = new JLabel("User Name");
+		lblUserName.setBounds(20, 20, 100, 30);
+		lblUserName.setFont(new Font("Malgun Gothic", Font.BOLD, 14)); // 폰트 크기 조정
+		inputPanel.add(lblUserName);
 		
 		txtUserName = new JTextField();
 		txtUserName.setHorizontalAlignment(SwingConstants.CENTER);
-		txtUserName.setBounds(101, 39, 116, 33);
-		contentPane.add(txtUserName);
+		txtUserName.setBounds(130, 20, 150, 30);
+		inputPanel.add(txtUserName);
 		txtUserName.setColumns(10);
 		
+		// [Row 2] IP Address
 		JLabel lblIpAddress = new JLabel("IP Address");
-		lblIpAddress.setBounds(12, 100, 82, 33);
-		contentPane.add(lblIpAddress);
+		lblIpAddress.setBounds(20, 70, 100, 30);
+		lblIpAddress.setFont(new Font("Malgun Gothic", Font.BOLD, 14));
+		inputPanel.add(lblIpAddress);
 		
 		txtIpAddress = new JTextField();
 		txtIpAddress.setHorizontalAlignment(SwingConstants.CENTER);
 		txtIpAddress.setText("127.0.0.1");
-		txtIpAddress.setColumns(10);
-		txtIpAddress.setBounds(101, 100, 116, 33);
-		contentPane.add(txtIpAddress);
+		txtIpAddress.setBounds(130, 70, 150, 30);
+		inputPanel.add(txtIpAddress);
 		
+		// [Row 3] Port Number
 		JLabel lblPortNumber = new JLabel("Port Number");
-		lblPortNumber.setBounds(12, 163, 82, 33);
-		contentPane.add(lblPortNumber);
+		lblPortNumber.setBounds(20, 120, 100, 30);
+		lblPortNumber.setFont(new Font("Malgun Gothic", Font.BOLD, 14));
+		inputPanel.add(lblPortNumber);
 		
 		txtPortNumber = new JTextField();
 		txtPortNumber.setText("30000");
 		txtPortNumber.setHorizontalAlignment(SwingConstants.CENTER);
-		txtPortNumber.setColumns(10);
-		txtPortNumber.setBounds(101, 163, 116, 33);
-		contentPane.add(txtPortNumber);
+		txtPortNumber.setBounds(130, 120, 150, 30);
+		inputPanel.add(txtPortNumber);
 		
+		// [Row 4] Connect Button
 		JButton btnConnect = new JButton("Connect");
-		btnConnect.setBounds(12, 223, 205, 38);
-		contentPane.add(btnConnect);
+		btnConnect.setBounds(20, 180, 260, 40); // 박스 너비에 맞춰 꽉 차게
+		btnConnect.setFont(new Font("Malgun Gothic", Font.BOLD, 16));
+		btnConnect.setBackground(new Color(50, 100, 200)); // 버튼 색상 (파란 계열)
+		btnConnect.setForeground(Color.WHITE); // 글자 색상 (흰색)
+		inputPanel.add(btnConnect);
+		
+		// 이벤트 리스너 연결
 		Myaction action = new Myaction();
 		btnConnect.addActionListener(action);
 		txtUserName.addActionListener(action);
@@ -85,8 +130,7 @@ public class ClientExe  extends JFrame {
 		txtPortNumber.addActionListener(action);
 	}
 	
-	class Myaction implements ActionListener // 내부클래스로 액션 이벤트 처리 클래스
-	{
+	class Myaction implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String name = txtUserName.getText().trim();
